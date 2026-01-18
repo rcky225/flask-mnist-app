@@ -1,31 +1,150 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Number Classifier</title>
+    <title>AI Number Classifier</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="./static/favicon.svg">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="./static/stylesheet.css">
 </head>
+
 <body>
-    <header>   
-        <img class="header_img" src="https://aidemyexstorage.blob.core.windows.net/aidemycontents/1621500180546399.png" alt="Aidemy">
-        <a class="header-logo" href="#">Number Classifier</a>
+    <div class="background-decor"></div>
+
+    <header>
+        <div class="logo-container">
+            <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            <h1 class="header-logo">AI Number Classifier</h1>
+        </div>
     </header>
 
-    <div class="main">    
-        <h2> AIが送信された画像の数字を識別します</h2>
-        <p>画像を送信してください</p>
-        <form method="POST" enctype="multipart/form-data">
-            <input class="file_choose" type="file" name="file">
-            <input class="btn" value="submit!" type="submit">
-        </form>
-        <div class="answer">{{answer}}</div>
-    </div>
+    <main class="container">
+        <section class="glass-card">
+            <div class="card-content">
+                <h2>手書き数字認識AI</h2>
+                <p class="subtitle">0から9までの数字画像をアップロードすると、AIが識別します。</p>
+
+                <form method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+
+                    <div class="file-drop-area" id="dropArea">
+                        <span class="file-msg">ここに画像をドラッグ＆ドロップ<br>またはクリックして選択</span>
+                        <input class="file-input" type="file" name="file" id="fileInput" accept="image/*">
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img src="" alt="Image Preview" class="image-preview__img">
+                        </div>
+                    </div>
+
+                    <button class="btn-submit" type="submit">
+                        <span class="btn-text">判定を実行する</span>
+                    </button>
+                </form>
+
+                {% if answer %}
+                <div class="result-area">
+                    <div class="result-card">
+                        <h3 class="result-title">AIの答え</h3>
+                        <p class="result-text">{{ answer }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </section>
+    </main>
 
     <footer>
-        <img class="footer_img" src="https://aidemyexstorage.blob.core.windows.net/aidemycontents/1621500180546399.png" alt="Aidemy">
-        <small>&copy; 2019 Aidemy, inc.</small>   
+        <small>&copy; 2024 AI Number Classifier Project</small>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('fileInput');
+            const dropArea = document.getElementById('dropArea');
+            const previewContainer = document.getElementById('imagePreview');
+            const previewImage = previewContainer.querySelector('.image-preview__img');
+            const fileMsg = dropArea.querySelector('.file-msg');
+
+            // プレビュー表示関数
+            const showPreview = (file) => {
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImage.src = e.target.result;
+                        previewContainer.style.display = 'flex';
+                        previewImage.style.display = 'block';
+                        fileMsg.style.display = 'none'; // メッセージを隠す
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            // Input Change Event
+            fileInput.addEventListener('change', function () {
+                const file = this.files[0];
+                showPreview(file);
+            });
+
+            // Drag & Drop Handling
+            ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ;['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ;['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropArea.classList.add('highlight');
+            }
+
+            function unhighlight(e) {
+                dropArea.classList.remove('highlight');
+            }
+
+            dropArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    fileInput.files = files; // inputにファイルをセット
+                    showPreview(files[0]);   // プレビュー表示
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>
